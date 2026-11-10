@@ -19,19 +19,36 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Java 17
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Gradle 8.9
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
+      - name: Check Manifest XML
+        run: |
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          path = "app/src/main/AndroidManifest.xml"
+          print("Checking:", path)
+          try:
+              ET.parse(path)
+              print("MANIFEST XML IS VALID")
+          except ET.ParseError as e:
+              print("MANIFEST XML ERROR:", e)
+              raise
+          PY
+
+      - name: Show Manifest
+        run: cat -n app/src/main/AndroidManifest.xml
+
       - name: Build Debug APK
-        run: gradle assembleDebug
+        run: gradle assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
